@@ -226,8 +226,6 @@ GLuint BuildTriangles()
     int i;
     double theta;
 
-    NDC_coefficients[3] = RADIUS_EXTERNAL;
-
     float angle = 2*PI;
     float angle_triangle = (2*PI)/(POINTS_NUMBER-4);
 
@@ -316,8 +314,6 @@ GLuint BuildTriangles()
     // isto é: Vermelho, Verde, Azul, Alpha (valor de transparência).
     // Conversaremos sobre sistemas de cores nas aulas de Modelos de Iluminação.
     GLfloat color_coefficients[(POINTS_NUMBER + 1) * 4] = {0.0f};
-    color_coefficients[0] = 1.0f;
-    color_coefficients[3] = 1.0f;
     for(i = 4; i <= POINTS_NUMBER * 4; i += 8){
         color_coefficients[i + 2] = 1.0f;
         color_coefficients[i + 3] = 1.0f;
