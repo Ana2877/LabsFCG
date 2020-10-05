@@ -77,16 +77,20 @@ void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 
 //My functions
 void WASDKeysPressed(int key, int action);
-void MoveWASD();
+void UpdatePosition();
 
 //My globals
+float speed = 0.05f;
 bool g_WPressed = false;
 bool g_APressed = false;
 bool g_SPressed = false;
 bool g_DPressed = false;
-float g_PosX = 0;
-float g_PosY = 0;
-float g_PosZ = 3;
+float g_PosX = 0.0f;
+float g_PosY = 0.0f;
+float g_PosZ = 3.0f;
+glm::vec4 camera_position_c = glm::vec4(0.0f, 0.0f,  3.0f, 1.0f);
+glm::vec4 cameraFront = glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);
+glm::vec4 cameraUp = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
 
 // Definimos uma estrutura que armazenará dados necessários para renderizar
 // cada objeto da cena virtual.
@@ -284,17 +288,28 @@ int main()
         // e ScrollCallback().
         float r = g_CameraDistance;
 
-        MoveWASD();
+        //float y = r*sin(g_CameraPhi);
+        //float z = r*cos(g_CameraPhi)*cos(g_CameraTheta);
+        //float x = r*cos(g_CameraPhi)*sin(g_CameraTheta);
 
-        // Abaixo definimos as varáveis que efetivamente definem a câmera virtual.
-        // Veja slides 195-227 e 229-234 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
-        glm::vec4 camera_position_c  = glm::vec4(g_PosX, g_PosY, g_PosZ, 1.0f); // Ponto "c", centro da câmera
-        glm::vec4 camera_view_vector = glm::vec4(0.0f, 0.0f, -1.0f, 0.0f); // Vetor "view", sentido para onde a câmera está virada
-        glm::vec4 camera_up_vector   = glm::vec4(0.0f,1.0f,0.0f,0.0f); // Vetor "up" fixado para apontar para o "céu" (eito Y global)
+        glm::vec4 camera_view_vector = cameraFront; // Vetor "view", sentido para onde a câmera está virada
+
+        glm::vec4 up = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
+        glm::vec4 cameraRight = normalize(crossproduct(up, camera_view_vector));
+        glm::vec4 cameraUp = crossproduct(camera_view_vector, cameraRight);
+
+        if (g_WPressed)
+            camera_position_c += speed * cameraFront;
+        if (g_APressed)
+            camera_position_c -= normalize(crossproduct(cameraFront, cameraUp)) * speed;
+        if (g_SPressed)
+            camera_position_c -= speed * cameraFront;
+        if (g_DPressed)
+            camera_position_c += normalize(crossproduct(cameraFront, cameraUp)) * speed;
 
         // Computamos a matriz "View" utilizando os parâmetros da câmera para
         // definir o sistema de coordenadas da câmera.  Veja slides 2-14, 184-190 e 236-242 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
-        glm::mat4 view = Matrix_Camera_View(camera_position_c, camera_view_vector, camera_up_vector);
+        glm::mat4 view = Matrix_Camera_View(camera_position_c, camera_view_vector + cameraFront, cameraUp);
 
         // Agora computamos a matriz de Projeção.
         glm::mat4 projection;
@@ -519,13 +534,6 @@ int main()
 
     // Fim do programa
     return 0;
-}
-
-void MoveWASD(){
-    if (g_WPressed) g_PosZ = g_PosZ - 0.05f;
-    if (g_APressed) g_PosX = g_PosX - 0.05f;
-    if (g_SPressed) g_PosZ = g_PosZ + 0.05f;
-    if (g_DPressed) g_PosX = g_PosX + 0.05f;
 }
 
 // Constrói triângulos para futura renderização
@@ -998,6 +1006,13 @@ void CursorPosCallback(GLFWwindow* window, double xpos, double ypos)
 
     if (g_CameraPhi < phimin)
         g_CameraPhi = phimin;
+
+    glm::vec4 direction;
+    direction.x = -sin(g_CameraTheta) * cos(g_CameraPhi);
+    direction.y = -sin(g_CameraPhi);
+    direction.z = -cos(g_CameraTheta) * cos(g_CameraPhi);
+    direction.w = 0.0f;
+    cameraFront = normalize(direction);
 
     // Atualizamos as variáveis globais para armazenar a posição atual do
     // cursor como sendo a última posição conhecida do cursor.
