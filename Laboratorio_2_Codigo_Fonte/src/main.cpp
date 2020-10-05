@@ -75,6 +75,19 @@ void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 void CursorPosCallback(GLFWwindow* window, double xpos, double ypos);
 void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 
+//My functions
+void WASDKeysPressed(int key, int action);
+void MoveWASD();
+
+//My globals
+bool g_WPressed = false;
+bool g_APressed = false;
+bool g_SPressed = false;
+bool g_DPressed = false;
+float g_PosX = 0;
+float g_PosY = 0;
+float g_PosZ = 3;
+
 // Definimos uma estrutura que armazenará dados necessários para renderizar
 // cada objeto da cena virtual.
 struct SceneObject
@@ -148,7 +161,7 @@ int main()
     // Criamos uma janela do sistema operacional, com 800 colunas e 800 linhas
     // de pixels, e com título "INF01047 ...".
     GLFWwindow* window;
-    window = glfwCreateWindow(800, 800, "INF01047 - Seu Cartao - Seu Nome", NULL, NULL);
+    window = glfwCreateWindow(800, 800, "INF01047 - 00287714 - Ana Carolina Pagnoncelli", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -270,15 +283,13 @@ int main()
         // controladas pelo mouse do usuário. Veja as funções CursorPosCallback()
         // e ScrollCallback().
         float r = g_CameraDistance;
-        float y = r*sin(g_CameraPhi);
-        float z = r*cos(g_CameraPhi)*cos(g_CameraTheta);
-        float x = r*cos(g_CameraPhi)*sin(g_CameraTheta);
+
+        MoveWASD();
 
         // Abaixo definimos as varáveis que efetivamente definem a câmera virtual.
         // Veja slides 195-227 e 229-234 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
-        glm::vec4 camera_position_c  = glm::vec4(x,y,z,1.0f); // Ponto "c", centro da câmera
-        glm::vec4 camera_lookat_l    = glm::vec4(0.0f,0.0f,0.0f,1.0f); // Ponto "l", para onde a câmera (look-at) estará sempre olhando
-        glm::vec4 camera_view_vector = camera_lookat_l - camera_position_c; // Vetor "view", sentido para onde a câmera está virada
+        glm::vec4 camera_position_c  = glm::vec4(g_PosX, g_PosY, g_PosZ, 1.0f); // Ponto "c", centro da câmera
+        glm::vec4 camera_view_vector = glm::vec4(0.0f, 0.0f, -1.0f, 0.0f); // Vetor "view", sentido para onde a câmera está virada
         glm::vec4 camera_up_vector   = glm::vec4(0.0f,1.0f,0.0f,0.0f); // Vetor "up" fixado para apontar para o "céu" (eito Y global)
 
         // Computamos a matriz "View" utilizando os parâmetros da câmera para
@@ -510,6 +521,13 @@ int main()
     return 0;
 }
 
+void MoveWASD(){
+    if (g_WPressed) g_PosZ = g_PosZ - 0.05f;
+    if (g_APressed) g_PosX = g_PosX - 0.05f;
+    if (g_SPressed) g_PosZ = g_PosZ + 0.05f;
+    if (g_DPressed) g_PosX = g_PosX + 0.05f;
+}
+
 // Constrói triângulos para futura renderização
 GLuint BuildTriangles()
 {
@@ -665,30 +683,30 @@ GLuint BuildTriangles()
     // Definimos os índices dos vértices que definem as FACES de um cubo
     // através de 12 triângulos que serão desenhados com o modo de renderização
     // GL_TRIANGLES.
-        0, 1, 2, // triângulo 1 
-        7, 6, 5, // triângulo 2 
-        3, 2, 6, // triângulo 3 
-        4, 0, 3, // triângulo 4 
-        4, 5, 1, // triângulo 5 
-        1, 5, 6, // triângulo 6 
-        0, 2, 3, // triângulo 7 
-        7, 5, 4, // triângulo 8 
-        3, 6, 7, // triângulo 9 
+        0, 1, 2, // triângulo 1
+        7, 6, 5, // triângulo 2
+        3, 2, 6, // triângulo 3
+        4, 0, 3, // triângulo 4
+        4, 5, 1, // triângulo 5
+        1, 5, 6, // triângulo 6
+        0, 2, 3, // triângulo 7
+        7, 5, 4, // triângulo 8
+        3, 6, 7, // triângulo 9
         4, 3, 7, // triângulo 10
         4, 1, 0, // triângulo 11
         1, 6, 2, // triângulo 12
     // Definimos os índices dos vértices que definem as ARESTAS de um cubo
     // através de 12 linhas que serão desenhadas com o modo de renderização
     // GL_LINES.
-        0, 1, // linha 1 
-        1, 2, // linha 2 
-        2, 3, // linha 3 
-        3, 0, // linha 4 
-        0, 4, // linha 5 
-        4, 7, // linha 6 
-        7, 6, // linha 7 
-        6, 2, // linha 8 
-        6, 5, // linha 9 
+        0, 1, // linha 1
+        1, 2, // linha 2
+        2, 3, // linha 3
+        3, 0, // linha 4
+        0, 4, // linha 5
+        4, 7, // linha 6
+        7, 6, // linha 7
+        6, 2, // linha 8
+        6, 5, // linha 9
         5, 4, // linha 10
         5, 1, // linha 11
         7, 3, // linha 12
@@ -1069,7 +1087,41 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
     {
         g_ShowInfoText = !g_ShowInfoText;
     }
+
+    WASDKeysPressed(key, action);
 }
+
+void WASDKeysPressed(int key, int action){
+    if (key == GLFW_KEY_W && action == GLFW_PRESS)
+    {
+        g_WPressed = true;
+    } else if (key == GLFW_KEY_W && action == GLFW_RELEASE) {
+        g_WPressed = false;
+    }
+
+    if (key == GLFW_KEY_A && action == GLFW_PRESS)
+    {
+        g_APressed = true;
+    } else if (key == GLFW_KEY_A && action == GLFW_RELEASE) {
+        g_APressed = false;
+    }
+
+    if (key == GLFW_KEY_S && action == GLFW_PRESS)
+    {
+        g_SPressed = true;
+    } else if (key == GLFW_KEY_S && action == GLFW_RELEASE) {
+        g_SPressed = false;
+    }
+
+    if (key == GLFW_KEY_D && action == GLFW_PRESS)
+    {
+        g_DPressed = true;
+    } else if (key == GLFW_KEY_D && action == GLFW_RELEASE) {
+        g_DPressed = false;
+    }
+}
+
+
 
 // Definimos o callback para impressão de erros da GLFW no terminal
 void ErrorCallback(int error, const char* description)
@@ -1194,7 +1246,7 @@ void TextRendering_ShowFramesPerSecond(GLFWwindow* window)
     if ( ellapsed_seconds > 1.0f )
     {
         numchars = snprintf(buffer, 20, "%.2f fps", ellapsed_frames / ellapsed_seconds);
-    
+
         old_seconds = seconds;
         ellapsed_frames = 0;
     }
