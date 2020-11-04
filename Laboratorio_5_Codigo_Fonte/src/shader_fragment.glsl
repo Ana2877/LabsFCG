@@ -83,10 +83,17 @@ void main()
         //   constante M_PI
         //   variável position_model
 
-        vec4 bbox_center = (bbox_min + bbox_max) / 2.0;
 
-        U = 0.0;
-        V = 0.0;
+        vec4 bbox_center = (bbox_min + bbox_max) / 2.0;
+        vec4 pl = bbox_center + normalize(position_model - bbox_center);
+        vec4 pv = pl - bbox_center;
+
+        float raio = length(pv);
+        float tetha = atan(pv.x, pv.z);
+        float phi = asin(pv.y/raio);
+
+        U = (tetha+M_PI)/(2*M_PI);
+        V = (phi+(M_PI/2))/M_PI;
     }
     else if ( object_id == BUNNY )
     {
@@ -108,8 +115,8 @@ void main()
         float minz = bbox_min.z;
         float maxz = bbox_max.z;
 
-        U = 0.0;
-        V = 0.0;
+        U = (position_model.x - minx)/(maxx - minx);
+        V = (position_model.y - miny)/(maxy - miny);
     }
     else if ( object_id == PLANE )
     {
@@ -129,5 +136,5 @@ void main()
     // Cor final com correção gamma, considerando monitor sRGB.
     // Veja https://en.wikipedia.org/w/index.php?title=Gamma_correction&oldid=751281772#Windows.2C_Mac.2C_sRGB_and_TV.2Fvideo_standard_gammas
     color = pow(color, vec3(1.0,1.0,1.0)/2.2);
-} 
+}
 
